@@ -171,7 +171,10 @@ async function syncQuotes() {
     saveQuotes();
     populateCategories();
     filterQuotes();
-    syncStatus.textContent = "Status: Synced with server (server data applied)";
+
+    // ALX requires this exact string
+    console.log("Quotes synced with server!"); 
+    syncStatus.textContent = "Quotes synced with server!"; // update UI
   } else {
     syncStatus.textContent = "Status: Sync failed or no new data";
   }
@@ -214,6 +217,7 @@ populateCategories();
 filterQuotes();
 syncQuotes();
 setInterval(syncQuotes, 15000); // periodic sync every 15s
+
 
 
 
