@@ -4,29 +4,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dynamic Quote Generator</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #quoteDisplay p { margin: 5px 0; }
+    input { margin-right: 5px; }
+    button { margin: 5px 0; }
+    #syncStatus { font-weight: bold; margin-bottom: 10px; }
+  </style>
 </head>
 <body>
   <h1>Dynamic Quote Generator</h1>
 
+  <!-- Sync Status -->
   <p id="syncStatus">Status: Not synced</p>
 
+  <!-- Category Filter -->
+  <label for="categoryFilter">Filter by Category:</label>
   <select id="categoryFilter" onchange="filterQuotes()">
     <option value="all">All Categories</option>
   </select>
 
+  <!-- Quotes Display -->
   <div id="quoteDisplay"></div>
-  <button id="newQuote">Show New Quote</button>
+  <button id="newQuote">Show Random Quote</button>
 
+  <!-- Add Quote Form -->
   <div id="formContainer"></div>
 
   <hr />
 
+  <!-- Export / Import -->
   <button id="exportQuotes">Export Quotes (JSON)</button>
   <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
 
+  <!-- JavaScript -->
   <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
