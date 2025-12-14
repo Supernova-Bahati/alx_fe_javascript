@@ -5,17 +5,9 @@ const QUOTES_KEY = "dynamic_quotes";
 const FILTER_KEY = "selected_category";
 
 // ===============================
-// Mock Server Endpoint
+// Mock Server URL
 // ===============================
 const SERVER_URL = "https://jsonplaceholder.typicode.com/posts";
-
-// ===============================
-// Load Quotes
-// ===============================
-let quotes = JSON.parse(localStorage.getItem(QUOTES_KEY)) || [
-  { text: "The best way to get started is to quit talking and begin doing.", category: "Motivation" },
-  { text: "Life is what happens when you're busy making other plans.", category: "Life" }
-];
 
 // ===============================
 // DOM Elements
@@ -28,7 +20,15 @@ const exportBtn = document.getElementById("exportQuotes");
 const syncStatus = document.getElementById("syncStatus");
 
 // ===============================
-// Save Quotes to Local Storage
+// Load Quotes from Local Storage
+// ===============================
+let quotes = JSON.parse(localStorage.getItem(QUOTES_KEY)) || [
+  { text: "The best way to get started is to quit talking and begin doing.", category: "Motivation" },
+  { text: "Life is what happens when you're busy making other plans.", category: "Life" }
+];
+
+// ===============================
+// Save Quotes
 // ===============================
 function saveQuotes() {
   localStorage.setItem(QUOTES_KEY, JSON.stringify(quotes));
@@ -40,7 +40,6 @@ function saveQuotes() {
 function populateCategories() {
   const categories = [...new Set(quotes.map(q => q.category))];
   categoryFilter.innerHTML = `<option value="all">All Categories</option>`;
-
   categories.forEach(cat => {
     const option = document.createElement("option");
     option.value = cat;
@@ -58,10 +57,9 @@ function populateCategories() {
 function displayQuotes(list) {
   quoteDisplay.innerHTML = "";
   if (list.length === 0) {
-    quoteDisplay.textContent = "No quotes found for this category.";
+    quoteDisplay.textContent = "No quotes available for this category.";
     return;
   }
-
   list.forEach(q => {
     const p = document.createElement("p");
     p.textContent = `"${q.text}" (${q.category})`;
@@ -75,11 +73,21 @@ function displayQuotes(list) {
 function filterQuotes() {
   const selected = categoryFilter.value;
   localStorage.setItem(FILTER_KEY, selected);
-
-  const filtered =
-    selected === "all" ? quotes : quotes.filter(q => q.category === selected);
-
+  const filtered = selected === "all" ? quotes : quotes.filter(q => q.category === selected);
   displayQuotes(filtered);
+}
+
+// ===============================
+// Show Random Quote
+// ===============================
+function showRandomQuote() {
+  const selected = categoryFilter.value;
+  let filtered = quotes;
+  if (selected !== "all") filtered = quotes.filter(q => q.category === selected);
+  if (filtered.length > 0) {
+    const randomQuote = filtered[Math.floor(Math.random() * filtered.length)];
+    displayQuotes([randomQuote]);
+  }
 }
 
 // ===============================
@@ -88,7 +96,6 @@ function filterQuotes() {
 function addQuote() {
   const text = document.getElementById("newQuoteText").value.trim();
   const category = document.getElementById("newQuoteCategory").value.trim();
-
   if (!text || !category) return alert("Please fill in both fields.");
 
   const newQuote = { text, category };
@@ -96,11 +103,8 @@ function addQuote() {
   saveQuotes();
   populateCategories();
   filterQuotes();
-
-  // Post to server
   postQuoteToServer(newQuote);
 
-  // Clear inputs
   document.getElementById("newQuoteText").value = "";
   document.getElementById("newQuoteCategory").value = "";
 }
@@ -134,12 +138,7 @@ async function fetchQuotesFromServer() {
   try {
     const response = await fetch(SERVER_URL);
     const data = await response.json();
-
-    // Map server posts to quotes
-    return data.slice(0, 5).map(post => ({
-      text: post.title,
-      category: "Server"
-    }));
+    return data.slice(0, 5).map(post => ({ text: post.title, category: "Server" }));
   } catch (err) {
     console.error("Error fetching from server:", err);
     return [];
@@ -162,20 +161,16 @@ async function postQuoteToServer(quote) {
 }
 
 // ===============================
-// Sync Quotes
+// Sync Quotes with Server
 // ===============================
 async function syncQuotes() {
   syncStatus.textContent = "Status: Syncing...";
-
   const serverQuotes = await fetchQuotesFromServer();
-
   if (serverQuotes.length > 0) {
-    // Conflict resolution: server wins
-    quotes = serverQuotes;
+    quotes = serverQuotes; // conflict resolution: server wins
     saveQuotes();
     populateCategories();
     filterQuotes();
-
     syncStatus.textContent = "Status: Synced with server (server data applied)";
   } else {
     syncStatus.textContent = "Status: Sync failed or no new data";
@@ -183,12 +178,7 @@ async function syncQuotes() {
 }
 
 // ===============================
-// Periodic Sync
-// ===============================
-setInterval(syncQuotes, 15000); // every 15 seconds
-
-// ===============================
-// Export / Import
+// Export / Import JSON
 // ===============================
 function exportQuotesToJson() {
   const blob = new Blob([JSON.stringify(quotes, null, 2)], { type: "application/json" });
@@ -214,20 +204,7 @@ function importFromJsonFile(event) {
 }
 
 // ===============================
-// Show Random Quote
-// ===============================
-function showRandomQuote() {
-  const selected = categoryFilter.value;
-  let filtered = quotes;
-  if (selected !== "all") filtered = quotes.filter(q => q.category === selected);
-
-  if (filtered.length > 0) {
-    displayQuotes([filtered[Math.floor(Math.random() * filtered.length)]]);
-  }
-}
-
-// ===============================
-// Initialize
+// Initialization
 // ===============================
 newQuoteBtn.addEventListener("click", showRandomQuote);
 exportBtn.addEventListener("click", exportQuotesToJson);
@@ -235,7 +212,9 @@ exportBtn.addEventListener("click", exportQuotesToJson);
 createAddQuoteForm();
 populateCategories();
 filterQuotes();
-syncQuotes(); // initial sync
+syncQuotes();
+setInterval(syncQuotes, 15000); // periodic sync every 15s
+
 
 
 
